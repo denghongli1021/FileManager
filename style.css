@@ -7,9 +7,17 @@
 }
 
 
-
 * {
     box-sizing: border-box;
+}
+
+.viewer-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #1f2937;
+    border-top: 1px solid #2e3a55;
+    gap: 6px;
 }
 
 body {
@@ -167,6 +175,9 @@ button {
     background: #1f2937;
     flex-wrap: wrap;
     align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 5;
 }
 
 .viewer-toolbar .group {
@@ -192,6 +203,7 @@ canvas {
     align-items: center;
     justify-content: center;
     overflow: auto;
+    touch-action: none;
     padding: 8px;
 }
 

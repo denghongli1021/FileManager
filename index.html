@@ -70,17 +70,26 @@
                     <span id="viewer-status">Page 0 / 0 · Zoom 100%</span>
                 </div>
                 <div class="group">
-                    <button id="prev">Prev</button>
-                    <button id="next">Next</button>
                     <button id="zoom-out">Zoom Out</button>
                     <button id="zoom-in">Zoom In</button>
                     <button id="reset">Reset</button>
                     <button id="download" class="small">Download</button>
                 </div>
             </div>
+    
             <div class="canvas-wrap">
                 <div id="loading" class="loading" style="display:none">Loading / Rendering...</div>
                 <canvas id="pdf-canvas"></canvas>
+            </div>
+    
+            <!-- new footer with Prev/Next -->
+            <div class="viewer-footer">
+                <div class="left-group">
+                    <button id="prev">Prev</button>
+                </div>
+                <div class="right-group">
+                    <button id="next">Next</button>
+                </div>
             </div>
         </div>
     </div>
