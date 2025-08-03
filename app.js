@@ -1,4 +1,4 @@
-// state
+// state 
 let currentViewUser = "";
 let owner = ""; // repo owner when inside a repo
 let repoName = "";
@@ -14,13 +14,11 @@ const apiBase = "https://api.github.com";
 const $ = (id) => document.getElementById(id);
 const setError = (msg) => {
   const e = $("err");
-  if (e) {
-    if (msg) {
-      e.textContent = msg;
-      e.style.display = "block";
-    } else {
-      e.style.display = "none";
-    }
+  if (msg) {
+    e.textContent = msg;
+    e.style.display = "block";
+  } else {
+    e.style.display = "none";
   }
 };
 const setStatus = (t) => {
@@ -65,7 +63,6 @@ async function listUserRepos(username) {
 
 function renderRepoTiles(username, repos) {
   const ex = $("explorer");
-  if (!ex) return;
   ex.innerHTML = "";
   repos
     .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
@@ -105,8 +102,7 @@ async function listFolder(path) {
     if (!resp.ok) {
       if (resp.status === 404) {
         setError("Path not found");
-        const ex = $("explorer");
-        if (ex) ex.innerHTML = "";
+        $("explorer").innerHTML = "";
         return;
       }
       throw new Error(`${resp.status} ${resp.statusText}`);
@@ -127,7 +123,6 @@ async function listFolder(path) {
 
 function renderTiles(dirs, files) {
   const ex = $("explorer");
-  if (!ex) return;
   ex.innerHTML = "";
 
   // folders
@@ -184,7 +179,6 @@ function renderTiles(dirs, files) {
 
 function updateBreadcrumb() {
   const bc = $("breadcrumb");
-  if (!bc) return;
   bc.innerHTML = "";
   if (viewingRepos) {
     const span = document.createElement("span");
@@ -217,9 +211,7 @@ function updateBreadcrumb() {
     }
   } else {
     const span = document.createElement("span");
-    span.textContent = currentViewUser
-      ? `${currentViewUser}'s repos`
-      : "Please load a user";
+    span.textContent = currentViewUser ? `${currentViewUser}'s repos` : "Please load a user";
     bc.appendChild(span);
   }
 }
@@ -294,8 +286,7 @@ async function uploadFiles(files) {
 
 // delete
 async function deleteFile(path, sha, name) {
-  if (!confirm(`Are you sure you want to delete "${name}"? This will commit the change.`))
-    return;
+  if (!confirm(`Are you sure you want to delete "${name}"? This will commit the change.`)) return;
   try {
     setError("");
     setStatus(`Deleting ${name}...`);
@@ -334,21 +325,16 @@ let pdfDoc = null,
   scale = 1;
 
 const canvas = $("pdf-canvas");
-const ctx = canvas ? canvas.getContext("2d") : null;
+const ctx = canvas.getContext("2d");
 const canvasWrap = document.querySelector(".canvas-wrap");
 
 function updateViewerStatus() {
   const statusEl = $("viewer-status");
-  if (statusEl)
-    statusEl.textContent = `Page ${pageNum} / ${numPages} · Zoom ${Math.round(scale * 100)}%`;
-  const pageInput = $("page-input");
-  if (pageInput) pageInput.value = pageNum;
-  const total = $("page-total");
-  if (total) total.textContent = `/ ${numPages}`;
+  if (statusEl) statusEl.textContent = `Page ${pageNum} / ${numPages} · Zoom ${Math.round(scale * 100)}%`;
 }
 
 async function renderPage(n, s) {
-  if (!pdfDoc || !ctx || !canvas) return;
+  if (!pdfDoc) return;
   $("loading").style.display = "flex";
   try {
     const page = await pdfDoc.getPage(n);
@@ -401,23 +387,6 @@ async function openPdfViewer(path, name) {
   }
 }
 
-// page jump
-const pageInputEl = $("page-input");
-const goBtn = $("go-page");
-function goToPageFromInput() {
-  if (!pdfDoc || !pageInputEl) return;
-  let v = parseInt(pageInputEl.value, 10);
-  if (isNaN(v) || v < 1) v = 1;
-  if (v > numPages) v = numPages;
-  pageNum = v;
-  renderPage(pageNum, scale);
-  if (canvasWrap) canvasWrap.scrollTop = 0;
-}
-goBtn?.addEventListener("click", goToPageFromInput);
-pageInputEl?.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") goToPageFromInput();
-});
-
 // event bindings
 $("load-user").addEventListener("click", () => {
   const user = $("github-user").value.trim();
@@ -445,7 +414,7 @@ $("up").addEventListener("click", () => {
 });
 $("upload").addEventListener("click", () => {
   const fi = $("fileinput");
-  if (fi && fi.files.length) uploadFiles(Array.from(fi.files));
+  if (fi.files.length) uploadFiles(Array.from(fi.files));
 });
 $("fileinput").addEventListener("change", (e) => {
   if (e.target.files.length) uploadFiles(Array.from(e.target.files));
@@ -504,13 +473,4 @@ $("token").addEventListener("input", () => {
 });
 $("github-user").addEventListener("input", () => {
   localStorage.setItem("gh_user", $("github-user").value.trim());
-});
-
-// sidebar toggle
-const toggleBtn = $("toggle-sidebar");
-toggleBtn?.addEventListener("click", () => {
-  const panel = document.querySelector(".panel");
-  if (!panel) return;
-  const collapsed = panel.classList.toggle("collapsed");
-  toggleBtn.textContent = collapsed ? "Show Sidebar" : "Hide Sidebar";
 });
