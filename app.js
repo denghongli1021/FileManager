@@ -341,18 +341,29 @@ async function renderPage(n, s) {
   $("loading").style.display = "flex";
   try {
     const page = await pdfDoc.getPage(n);
-    const dpr = window.devicePixelRatio || 1;
-    const unscaled = page.getViewport({ scale: s });
-    const scaled = page.getViewport({ scale: s * dpr });
-    canvas.width = Math.floor(scaled.width);
-    canvas.height = Math.floor(scaled.height);
-    canvas.style.width = `${Math.floor(unscaled.width)}px`;
-    canvas.style.height = `${Math.floor(unscaled.height)}px`;
-    ctx.save();
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // base viewport at scale s
+    const viewport = page.getViewport({ scale: s });
+    const outputScale = window.devicePixelRatio || 1;
+
+    // set canvas pixel size for high DPI
+    canvas.width = Math.floor(viewport.width * outputScale);
+    canvas.height = Math.floor(viewport.height * outputScale);
+    // CSS size stays unscaled so it displays sharp
+    canvas.style.width = `${Math.floor(viewport.width)}px`;
+    canvas.style.height = `${Math.floor(viewport.height)}px`;
+
+    // get scaled viewport for rendering
+    const scaledViewport = page.getViewport({ scale: s * outputScale });
+
+    // clear and render
+    ctx.resetTransform?.(); // if available
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.restore();
-    await page.render({ canvasContext: ctx, viewport: scaled }).promise;
+    await page.render({
+      canvasContext: ctx,
+      viewport: scaledViewport,
+    }).promise;
+
     updateViewerStatus();
   } catch (e) {
     console.error("renderPage", e);
