@@ -1,0 +1,252 @@
+:root {
+    --bg: #0f111a;
+    --card: #1f2937;
+    --radius: 8px;
+    --fg: #e3e8ef;
+    --muted: #8892b0;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.top-bar {
+    padding: 8px 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    background: #111827;
+    border-bottom: 1px solid #2e3a55;
+    font-size: 14px;
+}
+
+.panel {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 300px;
+    background: var(--card);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: auto;
+    min-height: 0;
+}
+
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    padding: 12px;
+}
+
+.input-inline {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+input,
+button,
+select {
+    background: #1f2f5a;
+    border: none;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+button {
+    cursor: pointer;
+}
+
+.small {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.breadcrumb {
+    font-size: 13px;
+    margin-bottom: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.breadcrumb span {
+    cursor: pointer;
+}
+
+.grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+
+.tile {
+    background: #1e2a4e;
+    padding: 10px;
+    border-radius: 8px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 100px;
+    cursor: pointer;
+    transition: transform .1s, box-shadow .2s;
+}
+
+.tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+}
+
+.tile .icon {
+    font-size: 28px;
+    margin-bottom: 6px;
+}
+
+.tile .name {
+    flex: 1;
+    word-break: break-word;
+    font-size: 14px;
+}
+
+.tile .sub {
+    font-size: 11px;
+    color: #a0aec0;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    z-index: 10;
+}
+
+.viewer {
+    width: 90%;
+    max-width: 1000px;
+    height: 85%;
+    background: #0f172a;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6);
+}
+
+.viewer-toolbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 14px;
+    gap: 8px;
+    background: #1f2937;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.viewer-toolbar .group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+canvas {
+    background: #fff;
+    border-radius: 6px;
+    max-width: 100%;
+    height: auto;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+}
+
+.canvas-wrap {
+    position: relative;
+    flex: 1;
+    background: #0f172a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 8px;
+}
+
+.loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-weight: 600;
+    border-radius: 6px;
+    z-index: 2;
+}
+
+.small-info {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.divider {
+    height: 1px;
+    background: #2e3a55;
+    margin: 8px 0;
+}
+
+.flex-grow {
+    flex: 1;
+}
+
+.tag {
+    background: #30475e;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-right: 4px;
+    font-size: 11px;
+    display: inline-block;
+}
+
+.error {
+    background: #4f1d1d;
+    padding: 6px;
+    border-radius: 6px;
+    color: #ffb3b3;
+    margin-top: 4px;
+    font-size: 12px;
+}
+
+code {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.delete-btn:hover {
+    background: rgba(255, 75, 75, 0.1);
+    border-radius: 50%;
+}
