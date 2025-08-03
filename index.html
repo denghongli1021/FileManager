@@ -15,6 +15,7 @@
             <button id="load-user">Load User</button>
             <label>Token: <input id="token" placeholder="PAT (required for upload/delete)" style="width:220px"
                     type="password" /></label>
+            <button id="toggle-sidebar" class="small">Hide Sidebar</button>
         </div>
         <div class="flex-grow"></div>
         <div class="small-info">
@@ -68,7 +69,7 @@
             <div class="viewer-toolbar">
                 <div class="group">
                     <button id="close-viewer" class="small">Close</button>
-                    <span id="viewer-status">Page 0 / 0 · Zoom 100%</span>
+                    <!-- <span id="viewer-status">Page 0 / 0 · Zoom 100%</span> -->
                 </div>
                 <div class="group">
                     <button id="zoom-out">Zoom Out</button>
@@ -90,6 +91,11 @@
                 </div>
                 <div class="footer-center">
                     <!-- reserved for future page jump if desired -->
+                    <span style="margin-right:4px;">Page</span>
+                    <input id="page-input" type="number" min="1" style="width:60px;" />
+                    <span id="page-total" style="margin-left:4px;">/ 0</span>
+                    <button id="go-page" class="small" style="margin-left:6px;">Go</button>
+                    <!-- <div id="viewer-status" style="margin-left:12px; white-space: nowrap;">Page 0 / 0 · Zoom 100%</div> -->
                 </div>
                 <div class="right-group">
                     <button id="next">Next</button>

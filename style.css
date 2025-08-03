@@ -37,6 +37,17 @@ body {
     overflow: hidden;
     transition: all .35s ease;
 }
+.panel.collapsed .sidebar {
+    transform: translateX(-100%);
+    opacity: 0;
+    width: 0;
+    padding: 0 0;
+    /* reduce padding when hidden to avoid leftover space */
+}
+
+.panel.collapsed .main {
+    flex: 1;
+}
 
 .sidebar {
     width: 300px;

@@ -331,6 +331,10 @@ const canvasWrap = document.querySelector(".canvas-wrap");
 function updateViewerStatus() {
   const statusEl = $("viewer-status");
   if (statusEl) statusEl.textContent = `Page ${pageNum} / ${numPages} · Zoom ${Math.round(scale * 100)}%`;
+  const pageInput = $("page-input");
+  if (pageInput) pageInput.value = pageNum;
+  const total = $("page-total");
+  if (total) total.textContent = `/ ${numPages}`;
 }
 
 async function renderPage(n, s) {
@@ -473,4 +477,29 @@ $("token").addEventListener("input", () => {
 });
 $("github-user").addEventListener("input", () => {
   localStorage.setItem("gh_user", $("github-user").value.trim());
+});
+
+const toggleBtn = $("toggle-sidebar");
+toggleBtn?.addEventListener("click", () => {
+  const panel = document.querySelector(".panel");
+  if (!panel) return;
+  const collapsed = panel.classList.toggle("collapsed");
+  toggleBtn.textContent = collapsed ? "Show Sidebar" : "Hide Sidebar";
+});
+
+// page jump
+const pageInputEl = $("page-input");
+const goBtn = $("go-page");
+function goToPageFromInput() {
+  if (!pdfDoc) return;
+  let v = parseInt(pageInputEl.value, 10);
+  if (isNaN(v) || v < 1) v = 1;
+  if (v > numPages) v = numPages;
+  pageNum = v;
+  renderPage(pageNum, scale);
+  if (canvasWrap) canvasWrap.scrollTop = 0;
+}
+goBtn.addEventListener("click", goToPageFromInput);
+pageInputEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") goToPageFromInput();
 });
