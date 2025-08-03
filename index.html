@@ -15,6 +15,7 @@
             <button id="load-user">Load User</button>
             <label>Token: <input id="token" placeholder="PAT (required for upload/delete)" style="width:220px"
                     type="password" /></label>
+            <button id="toggle-sidebar" class="small">Hide Sidebar</button>
         </div>
         <div class="flex-grow"></div>
         <div class="small-info">
@@ -81,13 +82,11 @@
                 <canvas id="pdf-canvas"></canvas>
             </div>
 
-            <!-- footer with prev / jump / next -->
             <div class="viewer-footer">
                 <div class="footer-left">
                     <button id="prev">Prev</button>
                 </div>
                 <div class="footer-center">
-                    <label for="page-input" class="sr-only">Page</label>
                     <span style="margin-right:4px;">Page</span>
                     <input id="page-input" type="number" min="1" style="width:60px;" />
                     <span id="page-total" style="margin-left:4px;">/ 0</span>

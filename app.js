@@ -546,3 +546,11 @@ $("token").addEventListener("input", () => {
 $("github-user").addEventListener("input", () => {
   localStorage.setItem("gh_user", $("github-user").value.trim());
 });
+
+
+const toggleBtn = $("toggle-sidebar");
+toggleBtn.addEventListener("click", () => {
+  const panel = document.querySelector(".panel");
+  const collapsed = panel.classList.toggle("collapsed");
+  toggleBtn.textContent = collapsed ? "Show Sidebar" : "Hide Sidebar";
+});

@@ -35,10 +35,23 @@ body {
     display: flex;
     flex: 1;
     overflow: hidden;
+    transition: all .35s ease;
+}
+.panel.collapsed .sidebar {
+    transform: translateX(-100%);
+    opacity: 0;
+    width: 0;
+    padding: 0 0;
+    /* reduce padding when hidden to avoid leftover space */
+}
+
+.panel.collapsed .main {
+    flex: 1;
 }
 
 .sidebar {
     width: 300px;
+    flex-shrink: 0;
     background: var(--card);
     padding: 16px;
     display: flex;
@@ -46,6 +59,8 @@ body {
     gap: 12px;
     overflow: auto;
     min-height: 0;
+    position: relative;
+    transition: transform .35s ease, width .35s ease, opacity .35s ease;
 }
 
 .main {
