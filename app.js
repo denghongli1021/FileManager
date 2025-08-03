@@ -7,17 +7,24 @@ let token = "";
 let currentPath = ""; // path inside current repo; empty means root
 let viewingRepos = false; // true when showing list of repos for user
 
-let currentPdfPath = ""; // for download
+let currentPdfPath = "";
 let currentPdfName = "";
 
 const apiBase = "https://api.github.com";
 const $ = (id) => document.getElementById(id);
 const setError = (msg) => {
   const e = $("err");
-  if (msg) { e.textContent = msg; e.style.display = "block"; }
-  else e.style.display = "none";
+  if (msg) {
+    e.textContent = msg;
+    e.style.display = "block";
+  } else {
+    e.style.display = "none";
+  }
 };
-const setStatus = (t) => { $("status").textContent = t; };
+const setStatus = (t) => {
+  const s = $("status");
+  if (s) s.textContent = t;
+};
 
 function authHeaders(extra = {}) {
   const h = { Accept: "application/vnd.github+json", ...extra };
@@ -29,78 +36,88 @@ function authHeaders(extra = {}) {
 async function listUserRepos(username) {
   try {
     setError("");
-    setStatus(`抓取 ${username} 的 public repositories...`);
+    setStatus(`Fetching public repositories for ${username}...`);
     currentViewUser = username;
     viewingRepos = true;
-    owner = ""; repoName = ""; branch = "main"; currentPath = "";
+    owner = "";
+    repoName = "";
+    branch = "main";
+    currentPath = "";
     updateBreadcrumb();
-    const resp = await fetch(`${apiBase}/users/${encodeURIComponent(username)}/repos?per_page=100&sort=updated`, {
-      headers: authHeaders()
-    });
+    const resp = await fetch(
+      `${apiBase}/users/${encodeURIComponent(username)}/repos?per_page=100&sort=updated`,
+      {
+        headers: authHeaders(),
+      }
+    );
     if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
     const repos = await resp.json();
     renderRepoTiles(username, repos);
-    setStatus(`顯示 ${username} 的 ${repos.length} 個 repo`);
+    setStatus(`Showing ${repos.length} repos for ${username}`);
   } catch (e) {
     console.error(e);
-    setError("抓取 repositories 失敗: " + e.message);
-    setStatus("錯誤");
+    setError("Failed to fetch repositories: " + e.message);
+    setStatus("Error");
   }
 }
 
 function renderRepoTiles(username, repos) {
   const ex = $("explorer");
   ex.innerHTML = "";
-  repos.sort((a, b) => b.updated_at.localeCompare(a.updated_at)).forEach(r => {
-    const div = document.createElement("div");
-    div.className = "tile";
-    div.innerHTML = `
+  repos
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
+    .forEach((r) => {
+      const div = document.createElement("div");
+      div.className = "tile";
+      div.innerHTML = `
       <div class="icon">📁</div>
       <div class="name">${r.name}</div>
       <div class="sub">${r.private ? "private" : "public"} · ${r.language || ""}</div>
     `;
-    div.addEventListener("dblclick", () => {
-      owner = username;
-      repoName = r.name;
-      branch = r.default_branch || "main";
-      viewingRepos = false;
-      currentPath = "";
-      listFolder(currentPath);
+      div.addEventListener("dblclick", () => {
+        owner = username;
+        repoName = r.name;
+        branch = r.default_branch || "main";
+        viewingRepos = false;
+        currentPath = "";
+        listFolder(currentPath);
+      });
+      ex.appendChild(div);
     });
-    ex.appendChild(div);
-  });
 }
 
 // list contents inside current repo at path
 async function listFolder(path) {
   if (!owner || !repoName) {
-    setError("尚未選擇 repo");
+    setError("No repository selected");
     return;
   }
   try {
     setError("");
-    setStatus(`讀取 ${owner}/${repoName}/${path || "(root)"}...`);
+    setStatus(`Loading ${owner}/${repoName}/${path || "(root)"}...`);
     currentPath = path;
     updateBreadcrumb();
     const url = `${apiBase}/repos/${owner}/${repoName}/contents/${path || ""}?ref=${branch}`;
     const resp = await fetch(url, { headers: authHeaders() });
     if (!resp.ok) {
       if (resp.status === 404) {
-        setError("路徑不存在");
+        setError("Path not found");
         $("explorer").innerHTML = "";
         return;
       }
       throw new Error(`${resp.status} ${resp.statusText}`);
     }
     const data = await resp.json();
-    const dirs = data.filter(d => d.type === "dir");
-    const files = data.filter(d => d.type === "file");
+    const dirs = data.filter((d) => d.type === "dir");
+    const files = data.filter((d) => d.type === "file");
     renderTiles(dirs, files);
-    setStatus(`在 ${owner}/${repoName}/${path || "(root)"} 共 ${dirs.length} 資料夾, ${files.length} 檔案`);
+    setStatus(
+      `In ${owner}/${repoName}/${path || "(root)"}: ${dirs.length} folders, ${files.length} files`
+    );
   } catch (e) {
     console.error(e);
-    setError("列出資料夾失敗: " + e.message);
-    setStatus("錯誤");
+    setError("Failed to list folder: " + e.message);
+    setStatus("Error");
   }
 }
 
@@ -109,50 +126,57 @@ function renderTiles(dirs, files) {
   ex.innerHTML = "";
 
   // folders
-  dirs.sort((a, b) => a.name.localeCompare(b.name)).forEach(d => {
-    const div = document.createElement("div");
-    div.className = "tile";
-    div.innerHTML = `
+  dirs
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .forEach((d) => {
+      const div = document.createElement("div");
+      div.className = "tile";
+      div.innerHTML = `
       <div class="icon">📁</div>
       <div class="name">${d.name}</div>
-      <div class="sub">資料夾</div>
+      <div class="sub">Folder</div>
     `;
-    div.addEventListener("dblclick", () => {
-      const next = currentPath ? `${currentPath}/${d.name}` : d.name;
-      listFolder(next);
+      div.addEventListener("dblclick", () => {
+        const next = currentPath ? `${currentPath}/${d.name}` : d.name;
+        listFolder(next);
+      });
+      ex.appendChild(div);
     });
-    ex.appendChild(div);
-  });
 
   // files
-  files.sort((a, b) => a.name.localeCompare(b.name)).forEach(f => {
-    const div = document.createElement("div");
-    div.className = "tile";
-    div.innerHTML = `
+  files
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .forEach((f) => {
+      const div = document.createElement("div");
+      div.className = "tile";
+      div.innerHTML = `
       <div class="icon">📄</div>
       <div class="name">${f.name}</div>
       <div class="sub">${(f.name.split(".").pop() || "").toUpperCase()}</div>
-      ${token ? `<div class="delete-btn" title="刪除" style="position:absolute; top:6px; right:6px; font-size:16px; cursor:pointer;">🗑️</div>` : ''}
-    `;
-    div.addEventListener("dblclick", () => {
-      if (f.name.toLowerCase().endsWith(".pdf")) {
-        openPdfViewer(f.path, f.name);
-      } else {
-        alert("目前只支援 PDF 預覽");
+      ${
+        token
+          ? `<div class="delete-btn" title="Delete" style="position:absolute; top:6px; right:6px; font-size:16px; cursor:pointer;">🗑️</div>`
+          : ""
       }
-    });
-    if (token) {
-      const deleteBtn = div.querySelector(".delete-btn");
-      deleteBtn?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        deleteFile(f.path, f.sha, f.name);
+    `;
+      div.addEventListener("dblclick", () => {
+        if (f.name.toLowerCase().endsWith(".pdf")) {
+          openPdfViewer(f.path, f.name);
+        } else {
+          alert("Only PDF preview is supported currently");
+        }
       });
-    }
-    ex.appendChild(div);
-  });
+      if (token) {
+        const deleteBtn = div.querySelector(".delete-btn");
+        deleteBtn?.addEventListener("click", (e) => {
+          e.stopPropagation();
+          deleteFile(f.path, f.sha, f.name);
+        });
+      }
+      ex.appendChild(div);
+    });
 }
 
-// breadcrumb
 function updateBreadcrumb() {
   const bc = $("breadcrumb");
   bc.innerHTML = "";
@@ -174,7 +198,7 @@ function updateBreadcrumb() {
     if (currentPath) {
       const parts = currentPath.split("/").filter(Boolean);
       let acc = "";
-      parts.forEach(p => {
+      parts.forEach((p) => {
         const sep = document.createElement("span");
         sep.textContent = "›";
         bc.appendChild(sep);
@@ -187,7 +211,9 @@ function updateBreadcrumb() {
     }
   } else {
     const span = document.createElement("span");
-    span.textContent = currentViewUser ? `${currentViewUser}'s repos` : "請載入使用者";
+    span.textContent = currentViewUser
+      ? `${currentViewUser}'s repos`
+      : "Please load a user";
     bc.appendChild(span);
   }
 }
@@ -195,36 +221,38 @@ function updateBreadcrumb() {
 // upload
 async function uploadFiles(files) {
   if (viewingRepos) {
-    setError("必須先打開一個 repo 才能上傳");
+    setError("Must open a repository before uploading");
     return;
   }
   if (!owner || !repoName) {
-    setError("尚未選 repo");
+    setError("No repository selected");
     return;
   }
   if (!token) {
-    setError("上傳需要填入 token");
+    setError("Token required for upload");
     return;
   }
   for (const file of files) {
     try {
       setError("");
-      setStatus(`上傳 ${file.name}...`);
+      setStatus(`Uploading ${file.name}...`);
       const targetPath = currentPath ? `${currentPath}/${file.name}` : file.name;
       const apiUrl = `${apiBase}/repos/${owner}/${repoName}/contents/${targetPath}`;
 
       // check existing to get sha
       let sha = null;
       try {
-        const headResp = await fetch(`${apiUrl}?ref=${branch}`, { headers: authHeaders() });
+        const headResp = await fetch(`${apiUrl}?ref=${branch}`, {
+          headers: authHeaders(),
+        });
         if (headResp.ok) {
           const j = await headResp.json();
           sha = j.sha;
         }
-      } catch { }
+      } catch {}
 
       const arrayBuffer = await file.arrayBuffer();
-      let binary = '';
+      let binary = "";
       const bytes = new Uint8Array(arrayBuffer);
       const chunkSize = 0x8000;
       for (let i = 0; i < bytes.length; i += chunkSize) {
@@ -249,10 +277,10 @@ async function uploadFiles(files) {
         throw new Error(`(${res.status}) ${txt}`);
       }
       await res.json();
-      setStatus(`上傳 ${file.name} 成功`);
+      setStatus(`Uploaded ${file.name} successfully`);
     } catch (e) {
       console.error(e);
-      setError(`上傳失敗 ${file.name}: ${e.message}`);
+      setError(`Upload failed ${file.name}: ${e.message}`);
     }
   }
   await listFolder(currentPath);
@@ -260,10 +288,11 @@ async function uploadFiles(files) {
 
 // delete
 async function deleteFile(path, sha, name) {
-  if (!confirm(`確定要刪除 "${name}"？這會直接 commit 到 repo。`)) return;
+  if (!confirm(`Are you sure you want to delete "${name}"? This will commit the change.`))
+    return;
   try {
     setError("");
-    setStatus(`刪除 ${name}...`);
+    setStatus(`Deleting ${name}...`);
     const url = `${apiBase}/repos/${owner}/${repoName}/contents/${path}`;
     const body = {
       message: `Delete ${name}`,
@@ -280,25 +309,31 @@ async function deleteFile(path, sha, name) {
       throw new Error(`(${res.status}) ${text}`);
     }
     await res.json();
-    setStatus(`${name} 刪除成功`);
+    setStatus(`${name} deleted`);
     await listFolder(currentPath);
   } catch (e) {
     console.error(e);
-    setError(`刪除失敗: ${e.message}`);
-    setStatus("錯誤");
+    setError(`Delete failed: ${e.message}`);
+    setStatus("Error");
   }
 }
 
 // PDF viewer logic
-const pdfjsLib = window['pdfjs-dist/build/pdf'] || window.pdfjsLib;
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js';
-let pdfDoc = null, pageNum = 1, numPages = 0, scale = 1;
+const pdfjsLib = window["pdfjs-dist/build/pdf"] || window.pdfjsLib;
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js";
+let pdfDoc = null,
+  pageNum = 1,
+  numPages = 0,
+  scale = 1;
 
 const canvas = $("pdf-canvas");
 const ctx = canvas.getContext("2d");
 
 function updateViewerStatus() {
-  $("viewer-status").textContent = `第 ${pageNum} / ${numPages} 頁 · 縮放 ${Math.round(scale * 100)}%`;
+  $("viewer-status").textContent = `Page ${pageNum} / ${numPages} · Zoom ${Math.round(
+    scale * 100
+  )}%`;
 }
 
 async function renderPage(n, s) {
@@ -321,7 +356,7 @@ async function renderPage(n, s) {
     updateViewerStatus();
   } catch (e) {
     console.error("renderPage", e);
-    alert("PDF 渲染錯誤");
+    alert("PDF render failed");
   } finally {
     $("loading").style.display = "none";
   }
@@ -341,7 +376,7 @@ async function openPdfViewer(path, name) {
     $("pdf-overlay").style.display = "flex";
   } catch (e) {
     console.error("openPdf", e);
-    alert("打開 PDF 失敗: " + e.message);
+    alert("Failed to open PDF: " + e.message);
   }
 }
 
@@ -380,11 +415,30 @@ $("fileinput").addEventListener("change", (e) => {
 
 // viewer controls
 $("close-viewer").addEventListener("click", () => $("pdf-overlay").style.display = "none");
-$("prev").addEventListener("click", () => { if (pageNum > 1) { pageNum--; renderPage(pageNum, scale); }});
-$("next").addEventListener("click", () => { if (pdfDoc && pageNum < numPages) { pageNum++; renderPage(pageNum, scale); }});
-$("zoom-in").addEventListener("click", () => { scale = Math.min(5, scale + 0.25); renderPage(pageNum, scale); });
-$("zoom-out").addEventListener("click", () => { scale = Math.max(0.5, scale - 0.25); renderPage(pageNum, scale); });
-$("reset").addEventListener("click", () => { scale = 1; renderPage(pageNum, scale); });
+$("prev").addEventListener("click", () => {
+  if (pageNum > 1) {
+    pageNum--;
+    renderPage(pageNum, scale);
+  }
+});
+$("next").addEventListener("click", () => {
+  if (pdfDoc && pageNum < numPages) {
+    pageNum++;
+    renderPage(pageNum, scale);
+  }
+});
+$("zoom-in").addEventListener("click", () => {
+  scale = Math.min(5, scale + 0.25);
+  renderPage(pageNum, scale);
+});
+$("zoom-out").addEventListener("click", () => {
+  scale = Math.max(0.5, scale - 0.25);
+  renderPage(pageNum, scale);
+});
+$("reset").addEventListener("click", () => {
+  scale = 1;
+  renderPage(pageNum, scale);
+});
 $("download").addEventListener("click", () => {
   if (!currentPdfPath) return;
   const url = `https://raw.githubusercontent.com/${owner}/${repoName}/${branch}/${currentPdfPath}`;

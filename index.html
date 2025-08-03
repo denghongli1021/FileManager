@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8" />
-    <title>GitHub 公開 Repo 檔案總管 + PDF Viewer</title>
+    <title>GitHub Public Repo File Manager + PDF Viewer</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <link rel="stylesheet" href="style.css" />
 </head>
@@ -12,14 +12,16 @@
     <div class="top-bar">
         <div class="input-inline">
             <label>GitHub User: <input id="github-user" placeholder="username" style="width:140px" /></label>
-            <button id="load-user">載入使用者</button>
-            <label>Token: <input id="token" placeholder="PAT (要上傳/刪除才需要)" style="width:220px" type="password" /></label>
+            <button id="load-user">Load User</button>
+            <label>Token: <input id="token" placeholder="PAT (required for upload/delete)" style="width:220px"
+                    type="password" /></label>
         </div>
         <div class="flex-grow"></div>
         <div class="small-info">
-            顯示某個使用者的 public repositories，點進 repo 後可瀏覽資料夾/檔案並雙擊 PDF 預覽。<br />
-            <strong>上傳/刪除</strong> 需要 GitHub Personal Access Token（public repo 用 <code>public_repo</code> scope）。Token
-            只存在你本機。
+            Displays a GitHub user's public repositories. Double-click a repository to browse folders/files and preview
+            PDFs.<br />
+            <strong>Upload/Delete</strong> requires a GitHub Personal Access Token (for public repos give
+            <code>public_repo</code> scope). Token is stored locally only.
         </div>
     </div>
 
@@ -27,8 +29,8 @@
         <div class="sidebar">
             <div>
                 <div class="input-inline">
-                    <button id="up">⬆ 上一層</button>
-                    <button id="refresh">重新整理</button>
+                    <button id="up">⬆ Up</button>
+                    <button id="refresh">Refresh</button>
                 </div>
                 <div class="breadcrumb" id="breadcrumb"></div>
             </div>
@@ -36,17 +38,18 @@
             <div class="divider"></div>
 
             <div>
-                <div style="margin-bottom:4px">上傳到目前資料夾：</div>
+                <div style="margin-bottom:4px">Upload to current folder:</div>
                 <div class="input-inline">
                     <input type="file" id="fileinput" multiple />
-                    <button id="upload">上傳</button>
+                    <button id="upload">Upload</button>
                 </div>
-                <div class="small-info">可上傳多個檔案。上傳會 commit 到目前 repo + path。</div>
+                <div class="small-info">You can select multiple files. Upload will commit to the current repo and path.
+                </div>
             </div>
 
             <div class="divider"></div>
 
-            <div id="status" class="small-info">尚未載入使用者</div>
+            <div id="status" class="small-info">No user loaded</div>
             <div id="err" class="error" style="display:none"></div>
         </div>
 
@@ -63,20 +66,20 @@
         <div class="viewer">
             <div class="viewer-toolbar">
                 <div class="group">
-                    <button id="close-viewer" class="small">關閉</button>
-                    <span id="viewer-status">第 0 / 0 頁 · 縮放 100%</span>
+                    <button id="close-viewer" class="small">Close</button>
+                    <span id="viewer-status">Page 0 / 0 · Zoom 100%</span>
                 </div>
                 <div class="group">
-                    <button id="prev">上一頁</button>
-                    <button id="next">下一頁</button>
-                    <button id="zoom-out">縮小</button>
-                    <button id="zoom-in">放大</button>
-                    <button id="reset">重設</button>
-                    <button id="download" class="small">下載</button>
+                    <button id="prev">Prev</button>
+                    <button id="next">Next</button>
+                    <button id="zoom-out">Zoom Out</button>
+                    <button id="zoom-in">Zoom In</button>
+                    <button id="reset">Reset</button>
+                    <button id="download" class="small">Download</button>
                 </div>
             </div>
             <div class="canvas-wrap">
-                <div id="loading" class="loading" style="display:none">載入 / 渲染中...</div>
+                <div id="loading" class="loading" style="display:none">Loading / Rendering...</div>
                 <canvas id="pdf-canvas"></canvas>
             </div>
         </div>
