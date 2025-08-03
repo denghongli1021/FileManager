@@ -67,7 +67,6 @@
             <div class="viewer-toolbar">
                 <div class="group">
                     <button id="close-viewer" class="small">Close</button>
-                    <span id="viewer-status">Page 0 / 0 · Zoom 100%</span>
                 </div>
                 <div class="group">
                     <button id="zoom-out">Zoom Out</button>
@@ -76,18 +75,26 @@
                     <button id="download" class="small">Download</button>
                 </div>
             </div>
-    
+
             <div class="canvas-wrap">
                 <div id="loading" class="loading" style="display:none">Loading / Rendering...</div>
                 <canvas id="pdf-canvas"></canvas>
             </div>
-    
-            <!-- new footer with Prev/Next -->
+
+            <!-- footer with prev / jump / next -->
             <div class="viewer-footer">
-                <div class="left-group">
+                <div class="footer-left">
                     <button id="prev">Prev</button>
                 </div>
-                <div class="right-group">
+                <div class="footer-center">
+                    <label for="page-input" class="sr-only">Page</label>
+                    <span style="margin-right:4px;">Page</span>
+                    <input id="page-input" type="number" min="1" style="width:60px;" />
+                    <span id="page-total" style="margin-left:4px;">/ 0</span>
+                    <button id="go-page" class="small" style="margin-left:6px;">Go</button>
+                    <div id="viewer-status" style="margin-left:12px; white-space: nowrap;">Page 0 / 0 · Zoom 100%</div>
+                </div>
+                <div class="footer-right">
                     <button id="next">Next</button>
                 </div>
             </div>

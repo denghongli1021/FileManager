@@ -1,4 +1,4 @@
-// state
+// state 
 let currentViewUser = "";
 let owner = ""; // repo owner when inside a repo
 let repoName = "";
@@ -211,9 +211,7 @@ function updateBreadcrumb() {
     }
   } else {
     const span = document.createElement("span");
-    span.textContent = currentViewUser
-      ? `${currentViewUser}'s repos`
-      : "Please load a user";
+    span.textContent = currentViewUser ? `${currentViewUser}'s repos` : "Please load a user";
     bc.appendChild(span);
   }
 }
@@ -288,8 +286,7 @@ async function uploadFiles(files) {
 
 // delete
 async function deleteFile(path, sha, name) {
-  if (!confirm(`Are you sure you want to delete "${name}"? This will commit the change.`))
-    return;
+  if (!confirm(`Are you sure you want to delete "${name}"? This will commit the change.`)) return;
   try {
     setError("");
     setStatus(`Deleting ${name}...`);
@@ -329,11 +326,15 @@ let pdfDoc = null,
 
 const canvas = $("pdf-canvas");
 const ctx = canvas.getContext("2d");
+const canvasWrap = document.querySelector(".canvas-wrap");
 
 function updateViewerStatus() {
-  $("viewer-status").textContent = `Page ${pageNum} / ${numPages} · Zoom ${Math.round(
-    scale * 100
-  )}%`;
+  const statusEl = $("viewer-status");
+  if (statusEl) statusEl.textContent = `Page ${pageNum} / ${numPages} · Zoom ${Math.round(scale * 100)}%`;
+  const pageInput = $("page-input");
+  if (pageInput) pageInput.value = pageNum;
+  const total = $("page-total");
+  if (total) total.textContent = `/ ${numPages}`;
 }
 
 async function renderPage(n, s) {
@@ -341,22 +342,19 @@ async function renderPage(n, s) {
   $("loading").style.display = "flex";
   try {
     const page = await pdfDoc.getPage(n);
-    // base viewport at scale s
     const viewport = page.getViewport({ scale: s });
     const outputScale = window.devicePixelRatio || 1;
 
-    // set canvas pixel size for high DPI
-    canvas.width = Math.floor(viewport.width * outputScale);
-    canvas.height = Math.floor(viewport.height * outputScale);
-    // CSS size stays unscaled so it displays sharp
-    canvas.style.width = `${Math.floor(viewport.width)}px`;
-    canvas.style.height = `${Math.floor(viewport.height)}px`;
+    // internal pixel size
+    canvas.width = Math.round(viewport.width * outputScale);
+    canvas.height = Math.round(viewport.height * outputScale);
+    // CSS size (keeping ratio)
+    canvas.style.width = `${viewport.width}px`;
+    canvas.style.height = `${viewport.height}px`;
 
-    // get scaled viewport for rendering
     const scaledViewport = page.getViewport({ scale: s * outputScale });
 
-    // clear and render
-    ctx.resetTransform?.(); // if available
+    ctx.resetTransform?.();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     await page.render({
@@ -385,11 +383,81 @@ async function openPdfViewer(path, name) {
     updateViewerStatus();
     await renderPage(pageNum, scale);
     $("pdf-overlay").style.display = "flex";
+    document.body.style.overflow = "hidden";
+    if (canvasWrap) canvasWrap.scrollTop = 0;
   } catch (e) {
     console.error("openPdf", e);
     alert("Failed to open PDF: " + e.message);
   }
 }
+
+// page jump
+const pageInputEl = $("page-input");
+const goBtn = $("go-page");
+function goToPageFromInput() {
+  if (!pdfDoc) return;
+  let v = parseInt(pageInputEl.value, 10);
+  if (isNaN(v) || v < 1) v = 1;
+  if (v > numPages) v = numPages;
+  pageNum = v;
+  renderPage(pageNum, scale);
+  if (canvasWrap) canvasWrap.scrollTop = 0;
+}
+goBtn.addEventListener("click", goToPageFromInput);
+pageInputEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") goToPageFromInput();
+});
+
+// simple touch support: pan + pinch zoom
+let lastTouch = null;
+let pinchStartDist = null;
+let pinchStartScale = 1;
+let isPanning = false;
+let panStart = { x: 0, y: 0 };
+let scrollStart = { left: 0, top: 0 };
+
+function getDistance(t1, t2) {
+  const dx = t1.clientX - t2.clientX;
+  const dy = t1.clientY - t2.clientY;
+  return Math.hypot(dx, dy);
+}
+
+canvasWrap?.addEventListener("touchstart", (e) => {
+  if (e.touches.length === 1) {
+    isPanning = true;
+    panStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    scrollStart = { left: canvasWrap.scrollLeft, top: canvasWrap.scrollTop };
+  } else if (e.touches.length === 2) {
+    isPanning = false;
+    pinchStartDist = getDistance(e.touches[0], e.touches[1]);
+    pinchStartScale = scale;
+  }
+});
+
+canvasWrap?.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+  if (e.touches.length === 1 && isPanning) {
+    const dx = e.touches[0].clientX - panStart.x;
+    const dy = e.touches[0].clientY - panStart.y;
+    canvasWrap.scrollLeft = scrollStart.left - dx;
+    canvasWrap.scrollTop = scrollStart.top - dy;
+  } else if (e.touches.length === 2 && pinchStartDist) {
+    const newDist = getDistance(e.touches[0], e.touches[1]);
+    const ratio = newDist / pinchStartDist;
+    scale = Math.min(5, Math.max(0.5, pinchStartScale * ratio));
+    renderPage(pageNum, scale);
+  }
+});
+
+canvasWrap?.addEventListener("touchend", (e) => {
+  if (e.touches.length < 2) {
+    pinchStartDist = null;
+    pinchStartScale = scale;
+  }
+  if (e.touches.length === 0) {
+    isPanning = false;
+  }
+});
 
 // event bindings
 $("load-user").addEventListener("click", () => {
@@ -425,7 +493,10 @@ $("fileinput").addEventListener("change", (e) => {
 });
 
 // viewer controls
-$("close-viewer").addEventListener("click", () => $("pdf-overlay").style.display = "none");
+$("close-viewer").addEventListener("click", () => {
+  $("pdf-overlay").style.display = "none";
+  document.body.style.overflow = "";
+});
 $("prev").addEventListener("click", () => {
   if (pageNum > 1) {
     pageNum--;
