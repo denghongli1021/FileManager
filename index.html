@@ -15,14 +15,15 @@
             <button id="load-user">Load User</button>
             <label>Token: <input id="token" placeholder="PAT (required for upload/delete)" style="width:220px"
                     type="password" /></label>
-            <button id="toggle-sidebar" class="small">Hide Sidebar</button>
+            <button id="toggle-sidebar">Hide Sidebar</button>
         </div>
         <div class="flex-grow"></div>
         <div class="small-info">
             Displays a GitHub user's public repositories. Double-click a repository to browse folders/files and preview
             PDFs.<br />
             <strong>Upload/Delete</strong> requires a GitHub Personal Access Token (for public repos give
-            <code>public_repo</code> scope). Token is stored locally only.
+            <code>public_repo</code>
+            scope). Token is stored locally only.
         </div>
     </div>
 
@@ -68,6 +69,7 @@
             <div class="viewer-toolbar">
                 <div class="group">
                     <button id="close-viewer" class="small">Close</button>
+                    <span id="viewer-status">Page 0 / 0 · Zoom 100%</span>
                 </div>
                 <div class="group">
                     <button id="zoom-out">Zoom Out</button>
@@ -82,18 +84,18 @@
                 <canvas id="pdf-canvas"></canvas>
             </div>
 
+            <!-- footer: prev, page jump, next -->
             <div class="viewer-footer">
-                <div class="footer-left">
+                <div class="left-group">
                     <button id="prev">Prev</button>
+                    <div class="footer-center">
+                        <label for="page-input" style="margin-right:4px;">Page</label>
+                        <input id="page-input" type="number" min="1" style="width:50px;" />
+                        <span id="page-total">/ 0</span>
+                        <button id="go-page" class="small">Go</button>
+                    </div>
                 </div>
-                <div class="footer-center">
-                    <span style="margin-right:4px;">Page</span>
-                    <input id="page-input" type="number" min="1" style="width:60px;" />
-                    <span id="page-total" style="margin-left:4px;">/ 0</span>
-                    <button id="go-page" class="small" style="margin-left:6px;">Go</button>
-                    <div id="viewer-status" style="margin-left:12px; white-space: nowrap;">Page 0 / 0 · Zoom 100%</div>
-                </div>
-                <div class="footer-right">
+                <div class="right-group">
                     <button id="next">Next</button>
                 </div>
             </div>

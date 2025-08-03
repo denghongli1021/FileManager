@@ -1,4 +1,4 @@
-// state 
+// state
 let currentViewUser = "";
 let owner = ""; // repo owner when inside a repo
 let repoName = "";
@@ -14,11 +14,13 @@ const apiBase = "https://api.github.com";
 const $ = (id) => document.getElementById(id);
 const setError = (msg) => {
   const e = $("err");
-  if (msg) {
-    e.textContent = msg;
-    e.style.display = "block";
-  } else {
-    e.style.display = "none";
+  if (e) {
+    if (msg) {
+      e.textContent = msg;
+      e.style.display = "block";
+    } else {
+      e.style.display = "none";
+    }
   }
 };
 const setStatus = (t) => {
@@ -63,6 +65,7 @@ async function listUserRepos(username) {
 
 function renderRepoTiles(username, repos) {
   const ex = $("explorer");
+  if (!ex) return;
   ex.innerHTML = "";
   repos
     .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
@@ -102,7 +105,8 @@ async function listFolder(path) {
     if (!resp.ok) {
       if (resp.status === 404) {
         setError("Path not found");
-        $("explorer").innerHTML = "";
+        const ex = $("explorer");
+        if (ex) ex.innerHTML = "";
         return;
       }
       throw new Error(`${resp.status} ${resp.statusText}`);
@@ -123,6 +127,7 @@ async function listFolder(path) {
 
 function renderTiles(dirs, files) {
   const ex = $("explorer");
+  if (!ex) return;
   ex.innerHTML = "";
 
   // folders
@@ -179,6 +184,7 @@ function renderTiles(dirs, files) {
 
 function updateBreadcrumb() {
   const bc = $("breadcrumb");
+  if (!bc) return;
   bc.innerHTML = "";
   if (viewingRepos) {
     const span = document.createElement("span");
@@ -211,7 +217,9 @@ function updateBreadcrumb() {
     }
   } else {
     const span = document.createElement("span");
-    span.textContent = currentViewUser ? `${currentViewUser}'s repos` : "Please load a user";
+    span.textContent = currentViewUser
+      ? `${currentViewUser}'s repos`
+      : "Please load a user";
     bc.appendChild(span);
   }
 }
@@ -286,7 +294,8 @@ async function uploadFiles(files) {
 
 // delete
 async function deleteFile(path, sha, name) {
-  if (!confirm(`Are you sure you want to delete "${name}"? This will commit the change.`)) return;
+  if (!confirm(`Are you sure you want to delete "${name}"? This will commit the change.`))
+    return;
   try {
     setError("");
     setStatus(`Deleting ${name}...`);
@@ -325,12 +334,13 @@ let pdfDoc = null,
   scale = 1;
 
 const canvas = $("pdf-canvas");
-const ctx = canvas.getContext("2d");
+const ctx = canvas ? canvas.getContext("2d") : null;
 const canvasWrap = document.querySelector(".canvas-wrap");
 
 function updateViewerStatus() {
   const statusEl = $("viewer-status");
-  if (statusEl) statusEl.textContent = `Page ${pageNum} / ${numPages} · Zoom ${Math.round(scale * 100)}%`;
+  if (statusEl)
+    statusEl.textContent = `Page ${pageNum} / ${numPages} · Zoom ${Math.round(scale * 100)}%`;
   const pageInput = $("page-input");
   if (pageInput) pageInput.value = pageNum;
   const total = $("page-total");
@@ -338,7 +348,7 @@ function updateViewerStatus() {
 }
 
 async function renderPage(n, s) {
-  if (!pdfDoc) return;
+  if (!pdfDoc || !ctx || !canvas) return;
   $("loading").style.display = "flex";
   try {
     const page = await pdfDoc.getPage(n);
@@ -395,7 +405,7 @@ async function openPdfViewer(path, name) {
 const pageInputEl = $("page-input");
 const goBtn = $("go-page");
 function goToPageFromInput() {
-  if (!pdfDoc) return;
+  if (!pdfDoc || !pageInputEl) return;
   let v = parseInt(pageInputEl.value, 10);
   if (isNaN(v) || v < 1) v = 1;
   if (v > numPages) v = numPages;
@@ -403,60 +413,9 @@ function goToPageFromInput() {
   renderPage(pageNum, scale);
   if (canvasWrap) canvasWrap.scrollTop = 0;
 }
-goBtn.addEventListener("click", goToPageFromInput);
-pageInputEl.addEventListener("keydown", (e) => {
+goBtn?.addEventListener("click", goToPageFromInput);
+pageInputEl?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") goToPageFromInput();
-});
-
-// simple touch support: pan + pinch zoom
-let lastTouch = null;
-let pinchStartDist = null;
-let pinchStartScale = 1;
-let isPanning = false;
-let panStart = { x: 0, y: 0 };
-let scrollStart = { left: 0, top: 0 };
-
-function getDistance(t1, t2) {
-  const dx = t1.clientX - t2.clientX;
-  const dy = t1.clientY - t2.clientY;
-  return Math.hypot(dx, dy);
-}
-
-canvasWrap?.addEventListener("touchstart", (e) => {
-  if (e.touches.length === 1) {
-    isPanning = true;
-    panStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    scrollStart = { left: canvasWrap.scrollLeft, top: canvasWrap.scrollTop };
-  } else if (e.touches.length === 2) {
-    isPanning = false;
-    pinchStartDist = getDistance(e.touches[0], e.touches[1]);
-    pinchStartScale = scale;
-  }
-});
-
-canvasWrap?.addEventListener("touchmove", (e) => {
-  e.preventDefault();
-  if (e.touches.length === 1 && isPanning) {
-    const dx = e.touches[0].clientX - panStart.x;
-    const dy = e.touches[0].clientY - panStart.y;
-    canvasWrap.scrollLeft = scrollStart.left - dx;
-    canvasWrap.scrollTop = scrollStart.top - dy;
-  } else if (e.touches.length === 2 && pinchStartDist) {
-    const newDist = getDistance(e.touches[0], e.touches[1]);
-    const ratio = newDist / pinchStartDist;
-    scale = Math.min(5, Math.max(0.5, pinchStartScale * ratio));
-    renderPage(pageNum, scale);
-  }
-});
-
-canvasWrap?.addEventListener("touchend", (e) => {
-  if (e.touches.length < 2) {
-    pinchStartDist = null;
-    pinchStartScale = scale;
-  }
-  if (e.touches.length === 0) {
-    isPanning = false;
-  }
 });
 
 // event bindings
@@ -486,7 +445,7 @@ $("up").addEventListener("click", () => {
 });
 $("upload").addEventListener("click", () => {
   const fi = $("fileinput");
-  if (fi.files.length) uploadFiles(Array.from(fi.files));
+  if (fi && fi.files.length) uploadFiles(Array.from(fi.files));
 });
 $("fileinput").addEventListener("change", (e) => {
   if (e.target.files.length) uploadFiles(Array.from(e.target.files));
@@ -547,10 +506,11 @@ $("github-user").addEventListener("input", () => {
   localStorage.setItem("gh_user", $("github-user").value.trim());
 });
 
-
+// sidebar toggle
 const toggleBtn = $("toggle-sidebar");
-toggleBtn.addEventListener("click", () => {
+toggleBtn?.addEventListener("click", () => {
   const panel = document.querySelector(".panel");
+  if (!panel) return;
   const collapsed = panel.classList.toggle("collapsed");
   toggleBtn.textContent = collapsed ? "Show Sidebar" : "Hide Sidebar";
 });
