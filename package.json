@@ -1,0 +1,39 @@
+{
+  "name": "github-file-manager",
+  "version": "2.0.0",
+  "description": "A modern web application for browsing GitHub repositories and viewing PDF files",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "serve": "npx serve .",
+    "dev": "npx live-server --port=3000 --open=/index.html"
+  },
+  "keywords": [
+    "github",
+    "file-manager",
+    "pdf-viewer",
+    "javascript",
+    "es6-modules",
+    "responsive",
+    "accessibility"
+  ],
+  "author": "FileManager Team",
+  "license": "MIT",
+  "devDependencies": {
+    "live-server": "^1.2.2",
+    "serve": "^14.2.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/github-file-manager.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/github-file-manager/issues"
+  },
+  "homepage": "https://github.com/your-username/github-file-manager#readme",
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
