@@ -375,19 +375,30 @@ async function openPdfViewer(path, name) {
   try {
     currentPdfPath = path;
     currentPdfName = name;
-    const raw = `https://raw.githubusercontent.com/${owner}/${repoName}/${branch}/${path}`;
-    pdfDoc = await pdfjsLib.getDocument(raw).promise;
+    setStatus(`Loading PDF ${name}...`);
+    const rawUrl = `https://raw.githubusercontent.com/${owner}/${repoName}/${branch}/${path}`;
+
+    // 先用 fetch 拿到 ArrayBuffer（避免直接 URL 造成的 subtle mobile issue）
+    const resp = await fetch(rawUrl);
+    if (!resp.ok) throw new Error(`Fetch failed: ${resp.status} ${resp.statusText}`);
+    const arrayBuffer = await resp.arrayBuffer();
+
+    pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     pageNum = 1;
     numPages = pdfDoc.numPages;
     scale = 1;
+
     updateViewerStatus();
     await renderPage(pageNum, scale);
+
     $("pdf-overlay").style.display = "flex";
     document.body.style.overflow = "hidden";
     if (canvasWrap) canvasWrap.scrollTop = 0;
+    setStatus(`Loaded ${name}`);
   } catch (e) {
-    console.error("openPdf", e);
-    alert("Failed to open PDF: " + e.message);
+    console.error("openPdfViewer error:", e);
+    setError("Failed to open PDF: " + e.message);
+    setStatus("Error");
   }
 }
 
@@ -430,17 +441,12 @@ $("close-viewer").addEventListener("click", () => {
   document.body.style.overflow = "";
 });
 $("prev").addEventListener("click", () => {
-  if (pageNum > 1) {
-    pageNum--;
-    renderPage(pageNum, scale);
-  }
+  setPage(pageNum - 1);
 });
 $("next").addEventListener("click", () => {
-  if (pdfDoc && pageNum < numPages) {
-    pageNum++;
-    renderPage(pageNum, scale);
-  }
+  setPage(pageNum + 1);
 });
+
 $("zoom-in").addEventListener("click", () => {
   scale = Math.min(5, scale + 0.25);
   renderPage(pageNum, scale);
@@ -490,16 +496,30 @@ toggleBtn?.addEventListener("click", () => {
 // page jump
 const pageInputEl = $("page-input");
 const goBtn = $("go-page");
-function goToPageFromInput() {
+
+goBtn?.addEventListener("click", () => {
+  const v = parseInt(pageInputEl.value, 10);
+  if (!isNaN(v)) setPage(v);
+});
+
+pageInputEl?.addEventListener("keyup", (e) => {
+  if (e.key === "Enter") {
+    const v = parseInt(e.target.value, 10);
+    if (!isNaN(v)) setPage(v);
+  }
+});
+
+pageInputEl?.addEventListener("change", () => {
+  const v = parseInt(pageInputEl.value, 10);
+  if (!isNaN(v)) setPage(v);
+});
+
+function setPage(n) {
   if (!pdfDoc) return;
-  let v = parseInt(pageInputEl.value, 10);
-  if (isNaN(v) || v < 1) v = 1;
-  if (v > numPages) v = numPages;
-  pageNum = v;
+  n = Math.min(Math.max(1, n), numPages);
+  if (n === pageNum) return;
+  pageNum = n;
+  updateViewerStatus();
   renderPage(pageNum, scale);
   if (canvasWrap) canvasWrap.scrollTop = 0;
 }
-goBtn.addEventListener("click", goToPageFromInput);
-pageInputEl.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") goToPageFromInput();
-});
